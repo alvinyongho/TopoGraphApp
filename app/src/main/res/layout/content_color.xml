@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.alvinyho.topographapp.ColorActivity"
+    tools:showIn="@layout/activity_color"
+    android:background="#E8B121">
+
+    <RelativeLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="#AE8519"
+        android:paddingRight="20dp"
+        android:id="@+id/toolbar_bottom_color"
+        android:layout_alignParentEnd="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/start_over_text"
+            android:textSize="24sp"
+            android:text="START OVER"
+            android:textColor="#DDDCDA"
+            android:layout_toLeftOf="@+id/start_over_button"
+            android:layout_toStartOf="@+id/start_over_button"
+            android:layout_centerVertical="true"
+            android:paddingRight="10dp"/>
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_replay_white_24dp"
+            android:layout_gravity="right"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/start_over_button"/>
+
+
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/output_image_layout">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_margin="20dp">
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/left_foot_color"
+                android:layout_weight="1"
+                android:background="@drawable/rectangle_background"
+                android:src="@drawable/left_foot"
+                android:padding="20dp"
+                android:adjustViewBounds="true" />
+
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/right_foot_color"
+                android:layout_weight="1"
+                android:src="@drawable/right_foot"
+                android:background="@drawable/rectangle_background"
+                android:padding="20dp"
+                android:adjustViewBounds="true" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin = "20dp"
+        android:layout_below="@+id/output_image_layout"
+        android:layout_centerHorizontal="true">
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="70dp"
+            android:id="@+id/left_foot_print_button"
+            android:padding="0dp"
+            android:text="PRINT LEFT FOOT"
+            android:textSize="18dp"
+            android:adjustViewBounds="true"
+            android:background="@drawable/print_button"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="70dp"
+            android:id="@+id/right_foot_print_button"
+            android:textSize="18dp"
+            android:text="PRINT RIGHT FOOT"
+            android:adjustViewBounds="true"
+            android:background="@drawable/print_button"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+
+</RelativeLayout>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">TopoGraph</string>
+    <string name="capture_activity_title">Capture Your Feet</string>
+    <string name="action_settings">Settings</string>
+    <string name="scan_title">Capture Your Feet</string>
+    <string name="title_activity_color">ColorActivity</string>
+    <string name="scan_output">Approve &amp; Print</string>
+</resources>

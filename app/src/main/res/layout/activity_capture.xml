@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="com.alvinyho.topographapp.CaptureActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay" >
+
+            <ImageView
+                android:layout_width="34dp"
+                android:src="@drawable/close"
+                android:padding="8dp"
+                android:id="@+id/closeButton"
+                android:adjustViewBounds="true"
+                android:layout_height="34dp"
+                android:gravity="center_horizontal"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="24sp"
+                android:text="@string/scan_title"
+                android:gravity="center_horizontal"
+                android:paddingLeft="30dp"
+                android:alpha="1" />
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="38dp"
+                android:layout_gravity="center_vertical|right"
+                android:src="@drawable/ic_compare_white_24dp"
+                android:paddingRight="15dp"
+                android:alpha=".8"
+                android:id="@+id/switch_image"
+                android:visibility="invisible" />
+
+        </android.support.v7.widget.Toolbar>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <include layout="@layout/content_capture" />
+
+
+
+</android.support.design.widget.CoordinatorLayout>
