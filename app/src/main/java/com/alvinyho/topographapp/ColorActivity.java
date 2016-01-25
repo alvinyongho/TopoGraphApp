@@ -1,5 +1,9 @@
 package com.alvinyho.topographapp;
 
+import android.app.AlertDialog;
+import android.app.DialogFragment;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,46 +11,63 @@ import android.graphics.Color;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewStub;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
+import java.io.File;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 public class ColorActivity extends AppCompatActivity {
 
-    Boolean leftDone = false,
+    boolean leftDone = false,
             rightDone = false;
+
+    boolean left_isError = false,
+            right_isError = false;
+
 
     Uri left_bitmap_uri, right_bitmap_uri;
     ImageView left_imageView, right_imageView;
 
     Mat final_result_l, final_result_r;
+
+    int originalCol;
+    int originalRow;
 
 
     @Override
@@ -85,11 +106,17 @@ public class ColorActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String logtag = "SAVEIMAGE";
                 Log.d(logtag, "SAVING IMAGE");
+
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+                Date now = new Date();
+                String fileName = formatter.format(now);
+                saveImage(final_result_l, "leftFoot_" + fileName + ".png");
+                saveImage(final_result_r, "rightFoot_" + fileName + ".png");
             }
         });
 
 
-        Button left_print_button = (Button) findViewById(R.id.left_foot_print_button);
+        final Button left_print_button = (Button) findViewById(R.id.left_foot_print_button);
         Button right_print_button = (Button) findViewById(R.id.right_foot_print_button);
 
         left_print_button.setOnClickListener(new View.OnClickListener() {
@@ -97,6 +124,8 @@ public class ColorActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String logtag = "LEFTPRINT";
                 Log.d(logtag, "LEFT PRINT IMAGE CLICKED");
+
+
             }
         });
 
@@ -126,6 +155,9 @@ public class ColorActivity extends AppCompatActivity {
             }
         });
 
+        final ViewStub loading = ((ViewStub) findViewById(R.id.stub_import));
+        loading.setVisibility(View.VISIBLE);
+
 
         Intent intent = getIntent();
         left_bitmap_uri = Uri.parse(intent.getStringExtra("leftUri"));
@@ -142,6 +174,8 @@ public class ColorActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         left_imageView.setImageBitmap(bitmap);
+                        leftDone = true;
+                        remove_loading(loading);
                     }
                 });
             }
@@ -154,12 +188,119 @@ public class ColorActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         right_imageView.setImageBitmap(bitmap);
+                        rightDone = true;
+                        remove_loading(loading);
                     }
                 });
             }
         }).start();
 
 
+        left_imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(left_isError){
+                    finish();
+                }
+                loadPhoto(left_imageView, left_imageView.getMaxWidth(), left_imageView.getMaxHeight());
+
+            }
+        });
+
+        right_imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(right_isError){
+                    finish();
+                }
+                loadPhoto(right_imageView, right_imageView.getMaxWidth(), right_imageView.getMaxHeight());
+            }
+        });
+
+
+
+
+
+
+    }
+
+    private void remove_loading(ViewStub viewstub){
+        if(leftDone && rightDone) {
+            viewstub.setVisibility(View.INVISIBLE);
+        }
+    }
+
+
+    private void loadPhoto(ImageView imageView, int width, int height) {
+
+        ImageView tempImageView = imageView;
+
+
+        AlertDialog.Builder imageDialog = new AlertDialog.Builder(this);
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+
+        View layout = inflater.inflate(R.layout.act_lightbox,
+                (ViewGroup) findViewById(R.id.layout_root));
+        ImageView image = (ImageView) layout.findViewById(R.id.fullImage);
+        image.setImageDrawable(tempImageView.getDrawable());
+        imageDialog.setView(layout);
+        imageDialog.setPositiveButton("OK", new DialogInterface.OnClickListener(){
+
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+
+        });
+
+
+        imageDialog.create();
+        imageDialog.show();
+    }
+
+
+    private Mat rotateMat(Mat mat){
+
+        if (mat.width() > mat.height()) {
+            Core.transpose(mat, mat);
+            Core.flip(mat, mat, 1);
+            return mat;
+        } else
+            return mat;
+    }
+
+    private void saveImage (Mat mat, String file_name){
+        String logtag = "SAVE IMAGE METHOD";
+        Mat temp_mat = new Mat();
+
+        // rotateMat if needed
+        Mat rotated = rotateMat(mat);
+
+        Imgproc.cvtColor(rotated, temp_mat, Imgproc.COLOR_RGBA2BGR);
+
+        // Create the file in sd card
+        File path = new File(Environment.getExternalStorageDirectory() + "/HarrisImages/");
+        path.mkdirs();
+        File file = new File(path, file_name);
+        String full_path_filename = file.toString();
+        Boolean bool;
+        Log.d(logtag, "WROTE FILE TO " + full_path_filename);
+        bool = Imgcodecs.imwrite(full_path_filename, temp_mat, new MatOfInt(Imgcodecs.CV_IMWRITE_JPEG_QUALITY));
+
+        if (bool == true){
+            Context context = getApplicationContext();
+            CharSequence text = "Saved Image";
+            int duration = Toast.LENGTH_LONG;
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        } else {
+            Context context = getApplicationContext();
+            CharSequence text = "Could not save Image";
+            int duration = Toast.LENGTH_LONG;
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
 
 
 
@@ -307,8 +448,10 @@ public class ColorActivity extends AppCompatActivity {
             corners.add(bottomLeft);
 
 
-            Mat correctedImage = new Mat(original.rows(), original.cols(), original.type());
+            Mat correctedImage = new Mat(1440, 2560, original.type());
 
+            originalCol = original.cols();
+            originalRow = original.rows();
             //2125 4000
 
             Mat srcPoints = Converters.vector_Point2f_to_Mat(corners);
@@ -511,6 +654,9 @@ public class ColorActivity extends AppCompatActivity {
 
         Mat result = cannyMat(view_id, uri);
 
+        Log.d(logtag, "ORIGINAL COL" + String.valueOf(originalCol));
+        Log.d(logtag, "ORIGINAL ROW" + String.valueOf(originalRow));
+
         if (side == 0) {
             final_result_l = result;
         }
@@ -523,6 +669,12 @@ public class ColorActivity extends AppCompatActivity {
                     Bitmap.Config.ARGB_8888);
         }
         catch (NullPointerException e){
+            if (side == 0){
+                left_isError = true;
+            }
+            if (side == 1){
+                right_isError = true;
+            }
             return BitmapFactory.decodeResource(getResources(), R.drawable.error_message);
         }
 
@@ -578,11 +730,20 @@ public class ColorActivity extends AppCompatActivity {
 
 
 
-
+    public void goToMain() {
+        Intent i = getBaseContext().getPackageManager()
+                .getLaunchIntentForPackage(getBaseContext().getPackageName());
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(i);
+    }
 
 
     private void startOver(){
-        finish();
+        //finish();
+        DialogFragment newFragment = ResetDialogFragment.newInstance(
+                "Are you sure you want to go back to the beginning?");
+        newFragment.show(getFragmentManager(), "dialog");
+
     }
 
 }
