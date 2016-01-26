@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rlid"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    <LinearLayout
+        android:layout_width="450dp"
+        android:layout_height="800dp"
+        android:gravity="bottom"
+        android:orientation="vertical"
+        android:scaleType="centerCrop"
+        android:weightSum="1.0"
+        android:id="@+id/drawing_target_image">
+
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/view_drawing_pad"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" >
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

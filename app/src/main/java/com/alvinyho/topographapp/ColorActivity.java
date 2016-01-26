@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.media.Image;
 import android.net.Uri;
@@ -25,6 +26,7 @@ import android.view.ViewGroup;
 import android.view.ViewStub;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -345,11 +347,24 @@ public class ColorActivity extends AppCompatActivity {
         AlertDialog.Builder imageDialog = new AlertDialog.Builder(this);
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
 
-        View layout = inflater.inflate(R.layout.act_lightbox,
-                (ViewGroup) findViewById(R.id.layout_root));
-        ImageView image = (ImageView) layout.findViewById(R.id.fullImage);
-        image.setImageDrawable(tempImageView.getDrawable());
+        View layout = inflater.inflate(R.layout.screen_drawing_room,
+                (ViewGroup) findViewById(R.id.rlid));
+        LinearLayout bg_image = (LinearLayout) layout.findViewById(R.id.drawing_target_image);
+        bg_image.setBackground(tempImageView.getDrawable());
+
+
+        // DRAWING PAD VIEW
+        DrawingView mDrawingView=new DrawingView(this);
+
+        Log.d("created", "drawingview");
+
+
         imageDialog.setView(layout);
+
+        LinearLayout mDrawingPad=(LinearLayout) layout.findViewById(R.id.view_drawing_pad);
+        mDrawingPad.addView(mDrawingView);
+
+
         imageDialog.setPositiveButton("OK", new DialogInterface.OnClickListener(){
 
             public void onClick(DialogInterface dialog, int which) {
