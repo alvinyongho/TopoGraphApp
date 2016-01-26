@@ -349,8 +349,8 @@ public class ColorActivity extends AppCompatActivity {
 
         View layout = inflater.inflate(R.layout.screen_drawing_room,
                 (ViewGroup) findViewById(R.id.rlid));
-        LinearLayout bg_image = (LinearLayout) layout.findViewById(R.id.drawing_target_image);
-        bg_image.setBackground(tempImageView.getDrawable());
+        ImageView bg_image = (ImageView) layout.findViewById(R.id.drawing_target_image);
+        bg_image.setImageDrawable(tempImageView.getDrawable());
 
 
         // DRAWING PAD VIEW
