@@ -17,7 +17,8 @@
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay">
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            android:padding="20dp">
 
 
             <ImageView
@@ -33,12 +34,22 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="24sp"
+                android:textColor="#FFFFFF"
                 android:text="@string/scan_output"
                 android:layout_gravity="center_vertical"
                 android:paddingLeft="30dp"
                 android:alpha="1" />
 
 
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center_vertical|right"
+                android:src="@drawable/ic_save_white_24dp"
+                android:alpha="1"
+                android:id="@+id/save"
+                android:visibility="visible" />
 
             <ImageView
                 android:layout_width="40dp"
@@ -48,15 +59,8 @@
                 android:paddingRight="14dp"
                 android:alpha=".8"
                 android:id="@+id/share"
-                android:visibility="visible" />
-            <ImageView
-                android:layout_width="40dp"
-                android:layout_height="38dp"
-                android:layout_gravity="center_vertical|right"
-                android:src="@drawable/ic_save_white_24dp"
-                android:paddingRight="14dp"
-                android:alpha=".8"
-                android:id="@+id/save"/>
+                android:visibility="invisible" />
+
             <ImageView
                 android:layout_width="40dp"
                 android:layout_height="38dp"
@@ -66,6 +70,7 @@
                 android:alpha=".8"
                 android:id="@+id/print"
                 android:visibility="gone" />
+
             <ImageView
                 android:layout_width="40dp"
                 android:layout_height="38dp"

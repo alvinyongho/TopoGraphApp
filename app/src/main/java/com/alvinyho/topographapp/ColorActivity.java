@@ -15,6 +15,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.print.PrintHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -42,7 +43,12 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -70,6 +76,10 @@ public class ColorActivity extends AppCompatActivity {
     int originalRow;
 
 
+    Bitmap left_result, right_result;
+    ImageView saveImage;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,19 +103,25 @@ public class ColorActivity extends AppCompatActivity {
         goBackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                v.setAlpha(0.2f);
                 finish();
             }
         });
 
 
 
-        ImageView saveImage = (ImageView) findViewById(R.id.save);
+        saveImage = (ImageView) findViewById(R.id.save);
+        saveImage.setVisibility(View.INVISIBLE);
 
         saveImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String logtag = "SAVEIMAGE";
                 Log.d(logtag, "SAVING IMAGE");
+
+                v.setAlpha(0.2f);
+                reset_icon_to_color(v);
 
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
                 Date now = new Date();
@@ -117,13 +133,26 @@ public class ColorActivity extends AppCompatActivity {
 
 
         final Button left_print_button = (Button) findViewById(R.id.left_foot_print_button);
-        Button right_print_button = (Button) findViewById(R.id.right_foot_print_button);
+        final Button right_print_button = (Button) findViewById(R.id.right_foot_print_button);
 
         left_print_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String logtag = "LEFTPRINT";
                 Log.d(logtag, "LEFT PRINT IMAGE CLICKED");
+
+                delayAfterClick(v);
+
+
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                left_result.compress(Bitmap.CompressFormat.JPEG, 70, bos);
+                byte[] bitmapdata = bos.toByteArray();
+                ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+
+                Bitmap resizedBitmap = createScaledBitmapFromStream(bs, 2125, 4000);  // TODO: Scale to multiplier of size of the foot
+
+                doPhotoPrintSpecific(v, resizedBitmap);
+                left_print_button.setBackgroundResource(R.drawable.selected_print);
 
 
             }
@@ -132,8 +161,22 @@ public class ColorActivity extends AppCompatActivity {
         right_print_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String logtag = "LEFTPRINT";
+                String logtag = "RIGHTPRINT";
                 Log.d(logtag, "RIGHT PRINT IMAGE CLICKED");
+
+                delayAfterClick(v);
+
+
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                right_result.compress(Bitmap.CompressFormat.JPEG, 70, bos);
+                byte[] bitmapdata = bos.toByteArray();
+                ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+
+                Bitmap resizedBitmap = createScaledBitmapFromStream(bs, 2125, 4000);  // TODO: Scale to multiplier of size of the foot
+
+                doPhotoPrintSpecific(v, resizedBitmap);
+                right_print_button.setBackgroundResource(R.drawable.selected_print);
+
             }
         });
 
@@ -176,6 +219,7 @@ public class ColorActivity extends AppCompatActivity {
                         left_imageView.setImageBitmap(bitmap);
                         leftDone = true;
                         remove_loading(loading);
+                        left_result = bitmap;
                     }
                 });
             }
@@ -190,6 +234,7 @@ public class ColorActivity extends AppCompatActivity {
                         right_imageView.setImageBitmap(bitmap);
                         rightDone = true;
                         remove_loading(loading);
+                        right_result = bitmap;
                     }
                 });
             }
@@ -224,10 +269,71 @@ public class ColorActivity extends AppCompatActivity {
 
     }
 
+    private void doPhotoPrintSpecific(View v, Bitmap bm) {
+//        createCombinedImage(v);
+        PrintHelper photoPrinter = new PrintHelper(this);
+        photoPrinter.setScaleMode(PrintHelper.SCALE_MODE_FILL);
+
+//        Bitmap l_bitmap = left_result;
+//        Bitmap r_bitmap = right_result;
+        Bitmap bitmap = bm;
+        photoPrinter.printBitmap("single.jpg - test print", bitmap);
+
+
+
+    }
+
+
+    /**
+     * Read the image from the stream and create a bitmap scaled to the desired
+     * size.  Resulting bitmap will be at least as large as the
+     * desired minimum specified dimensions and will keep the image proportions
+     * correct during scaling.
+     */
+    protected Bitmap createScaledBitmapFromStream(InputStream s, int minimumDesiredBitmapWidth, int minimumDesiredBitmapHeight ) {
+
+        final BufferedInputStream is = new BufferedInputStream(s, 32*1024);
+        try {
+            final BitmapFactory.Options decodeBitmapOptions = new BitmapFactory.Options();
+            // For further memory savings, you may want to consider using this option
+            // decodeBitmapOptions.inPreferredConfig = Config.RGB_565; // Uses 2-bytes instead of default 4 per pixel
+
+            if( minimumDesiredBitmapWidth >0 && minimumDesiredBitmapHeight >0 ) {
+                final BitmapFactory.Options decodeBoundsOptions = new BitmapFactory.Options();
+                decodeBoundsOptions.inJustDecodeBounds = true;
+                is.mark(32*1024); // 32k is probably overkill, but 8k is insufficient for some jpgs
+                BitmapFactory.decodeStream(is,null,decodeBoundsOptions);
+                is.reset();
+
+                final int originalWidth = decodeBoundsOptions.outWidth;
+                final int originalHeight = decodeBoundsOptions.outHeight;
+
+                // inSampleSize prefers multiples of 2, but we prefer to prioritize memory savings
+                decodeBitmapOptions.inSampleSize= Math.max(1,Math.min(originalWidth / minimumDesiredBitmapWidth, originalHeight / minimumDesiredBitmapHeight));
+
+            }
+
+            return BitmapFactory.decodeStream(is,null,decodeBitmapOptions);
+
+        } catch( IOException e ) {
+            throw new RuntimeException(e); // this shouldn't happen
+        } finally {
+            try {
+                is.close();
+            } catch( IOException ignored ) {}
+        }
+
+    }
+
     private void remove_loading(ViewStub viewstub){
         if(leftDone && rightDone) {
             viewstub.setVisibility(View.INVISIBLE);
+            enable_save();
         }
+    }
+
+    private void enable_save(){
+        saveImage.setVisibility(View.VISIBLE);
     }
 
 
@@ -725,6 +831,58 @@ public class ColorActivity extends AppCompatActivity {
 //        }
 //        return BitmapFactory.decodeResource(getResources(), R.drawable.good_feet_logo);
 
+    }
+
+    private void delayAfterClick(View v){
+        final Button printButton = (Button) v;
+        printButton.setEnabled(false);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                ColorActivity.this.runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        printButton.setEnabled(true);
+
+                    }
+                });
+            }
+        }).start();
+    }
+
+
+
+    private void reset_icon_to_color(View v){
+        final Button icon = (Button) v;
+        icon.setEnabled(false);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                ColorActivity.this.runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        icon.setEnabled(true);
+
+                    }
+                });
+            }
+        }).start();
     }
 
 
